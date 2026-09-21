@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>我的中国旅行地图</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+  <style>
+    *{box-sizing:border-box} :root{--ink:#26372f;--muted:#728078;--paper:#f6f1e7;--card:#fffdf8;--orange:#ef8354;--green:#315e4e;--line:#ded7c8}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:"PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.22;background-image:radial-gradient(#8f9a89 .55px,transparent .55px);background-size:7px 7px}
+    header{height:76px;padding:0 5vw;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(49,94,78,.15);position:relative}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:20px;letter-spacing:.08em}.brand b{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--green);color:#fff;font-size:19px}
+    .header-note{font-size:13px;color:var(--muted)}
+    main{position:relative;width:min(1440px,94vw);margin:0 auto;padding:34px 0 26px}
+    .intro{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;gap:20px}.eyebrow{color:var(--orange);font-size:12px;font-weight:800;letter-spacing:.18em;margin-bottom:8px}.intro h1{font-family:Georgia,"Songti SC",serif;font-size:clamp(30px,4vw,55px);line-height:1.05;margin:0}.intro p{color:var(--muted);margin:8px 0 0;font-size:14px}
+    .layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:22px}.map-card,.side{background:rgba(255,253,248,.92);border:1px solid var(--line);border-radius:22px;box-shadow:0 18px 50px rgba(55,55,35,.07)}
+    .map-card{min-height:650px;overflow:hidden;position:relative}.map-toolbar{height:64px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+    .crumb{display:flex;align-items:center;gap:8px;font-size:14px}.crumb button{border:0;background:none;padding:7px 9px;border-radius:8px;font:inherit;color:var(--muted);cursor:pointer}.crumb button:hover{background:#eee8db;color:var(--green)}.crumb strong{color:var(--ink)}
+    .legend{display:flex;align-items:center;gap:14px;color:var(--muted);font-size:12px}.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}.visited{background:var(--orange)}.unvisited{background:#d9ddd7}
+    #map{height:580px}.loading{position:absolute;inset:64px 0 0;display:none;place-items:center;background:rgba(255,253,248,.78);z-index:4;color:var(--green);font-weight:700}.loading.show{display:grid}
+    .side{padding:22px;display:flex;flex-direction:column;min-height:650px}.side h2{font-family:Georgia,"Songti SC",serif;font-size:21px;margin:0 0 18px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{padding:15px;border-radius:14px;background:#f0eee5}.stat b{display:block;font-family:Georgia,serif;font-size:27px;color:var(--green);white-space:nowrap}.stat b small{font-size:14px;color:#89938e;font-weight:500}.stat span{font-size:12px;color:var(--muted)}
+    .progress-label{display:flex;justify-content:space-between;font-size:12px;margin:22px 0 7px}.bar{height:7px;border-radius:5px;background:#e4e2d9;overflow:hidden}.bar span{display:block;height:100%;width:0;background:var(--orange);transition:.3s}
+    .section-title{margin:26px 0 12px;font-size:12px;letter-spacing:.12em;color:var(--muted);font-weight:800}.list{display:flex;flex-direction:column;gap:8px;overflow:auto;max-height:275px}.item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#faf7ef;border-radius:12px;font-size:13px}.item em{font-style:normal;color:var(--orange);font-size:11px}.empty{color:#9a9f9a;font-size:13px;line-height:1.8;padding:12px 2px}.data-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:auto;padding-top:20px}.data-actions button,.clear{border:1px solid #d8d2c6;background:transparent;border-radius:12px;padding:11px;color:var(--muted);cursor:pointer}.data-actions button{background:var(--green);border-color:var(--green);color:#fff}.data-actions button:hover{background:#24483d}.clear{margin-top:8px}.clear:hover{border-color:var(--orange);color:var(--orange)}
+    .tip{position:absolute;left:20px;bottom:17px;background:var(--green);color:#fff;padding:9px 13px;border-radius:10px;font-size:12px;box-shadow:0 6px 20px #315e4e44;pointer-events:none}
+    footer{text-align:center;color:#9a9c94;font-size:11px;padding-top:18px}
+    @media(max-width:850px){header{height:64px}.header-note{display:none}main{padding-top:22px}.intro{align-items:flex-start;flex-direction:column}.layout{grid-template-columns:1fr}.map-card{min-height:520px}.map-toolbar{padding:0 12px}.legend{display:none}#map{height:455px}.side{min-height:auto}.list{max-height:220px}.clear{margin-top:20px}}
+  </style>
+</head>
+<body>
+  <header><div class="brand"><b>游</b><span>山河足迹</span></div><div class="header-note">一张地图，收藏走过的中国</div></header>
+  <main>
+    <section class="intro"><div><div class="eyebrow">MY TRAVEL MAP</div><h1>走过的路，都在这里。</h1><p>点击省份进入省内，再点击城市点亮你的旅行足迹。</p></div></section>
+    <div class="layout">
+      <section class="map-card">
+        <div class="map-toolbar"><div class="crumb"><button id="homeBtn">中国</button><span id="arrow" hidden>›</span><strong id="current"></strong></div><div class="legend"><span><i class="visited"></i>已去过</span><span><i class="unvisited"></i>未到访</span></div></div>
+        <div id="map"></div><div class="loading" id="loading">地图正在展开…</div><div class="tip" id="tip">点击省份查看城市 · W / S 缩放</div>
+      </section>
+      <aside class="side"><h2>我的足迹</h2><div class="stats"><div class="stat"><b><span id="cityCount">0</span><small> / <span id="cityTotal">333</span></small></b><span id="cityLabel">座城市</span></div><div class="stat"><b><span id="provinceCount">0</span><small> / 34</small></b><span>个省份</span></div></div><div class="progress-label"><span>探索进度</span><span id="percent">0%</span></div><div class="bar"><span id="bar"></span></div><div class="section-title">最近点亮</div><div class="list" id="list"></div><div class="data-actions"><button id="exportBtn">导出 JSON</button><button id="importBtn">导入 JSON</button></div><input id="importFile" type="file" accept="application/json,.json" hidden><button class="clear" id="clearBtn">清空全部足迹</button></aside>
+    </div><footer>足迹仅保存在你的浏览器中 · 数据来源：阿里云 DataV 地理数据</footer>
+  </main>
+  <script>
+    const DATA='https://geo.datav.aliyun.com/areas_v3/bound/';
+    const chart=echarts.init(document.getElementById('map'));
+    const loading=document.getElementById('loading'), current=document.getElementById('current'), arrow=document.getElementById('arrow'), tip=document.getElementById('tip');
+    let level='china', province='', provinceCode='', areaNames=[], geoCache={};
+    const municipalities=new Set(['北京市','上海市','天津市','重庆市']);
+    let footprints=JSON.parse(localStorage.getItem('china-travel-footprints')||'{}');
+    municipalities.forEach(city=>{const districts=Object.entries(footprints).filter(([name,v])=>v.province===city&&name!==city);if(districts.length){const latest=districts.sort((a,b)=>b[1].time-a[1].time)[0][1];districts.forEach(([name])=>delete footprints[name]);footprints[city]={province:city,time:latest.time}}});
+    localStorage.setItem('china-travel-footprints',JSON.stringify(footprints));
+    const getGeo=async(code)=>{if(geoCache[code])return geoCache[code]; const r=await fetch(DATA+code+'_full.json');if(!r.ok)throw Error('地图加载失败');return geoCache[code]=await r.json()};
+    function values(){return Object.entries(footprints).map(([name,v])=>({name,value:1,province:v.province,time:v.time,coord:v.coord}))}
+    function option(mapName,names){
+      const trips=values(), marked=new Set(trips.map(x=>x.name)), markedProvinces=new Set(trips.map(x=>x.province));
+      const isChina=level==='china';
+      return{animationDuration:500,tooltip:{trigger:'item',formatter:p=>isChina?(markedProvinces.has(p.name)?'✓ '+p.name+' · 已留下足迹':p.name):(municipalities.has(province)?(marked.has(province)?'✓ '+province+' · 已去过':province+' · 点击标记'):(marked.has(p.name)?'✓ '+p.name+' · 已去过':p.name+' · 点击标记')),backgroundColor:'#26372f',borderWidth:0,textStyle:{color:'#fff',fontSize:12},padding:[8,11]},series:[{type:'map',map:mapName,roam:true,scaleLimit:{min:1,max:6},selectedMode:false,label:{show:true,color:'#66736c',fontSize:10},itemStyle:{areaColor:'#e2e4dc',borderColor:'#fffdf8',borderWidth:1.4},emphasis:{label:{color:'#26372f',fontWeight:'bold'},itemStyle:{areaColor:'#f2ae80'}},data:names.map(name=>{const on=isChina?markedProvinces.has(name):(municipalities.has(province)?marked.has(province):marked.has(name));return{name,value:on?1:0,itemStyle:on?{areaColor:'#ef8354'}:undefined}})}]}}
+    async function showChina(){loading.classList.add('show');try{const geo=await getGeo('100000');echarts.registerMap('china-travel',geo);level='china';province='';provinceCode='';areaNames=geo.features.map(f=>f.properties.name);current.textContent='';arrow.hidden=true;tip.textContent='点击省份查看城市 · W / S 缩放';renderStats();chart.setOption(option('china-travel',areaNames),true)}catch(e){tip.textContent='地图加载失败，请检查网络后刷新'}finally{loading.classList.remove('show')}}
+    async function showProvince(name,code){loading.classList.add('show');try{const geo=await getGeo(code);const mapName='province-'+code;echarts.registerMap(mapName,geo);level='province';province=name;provinceCode=code;areaNames=geo.features.map(f=>f.properties.name);let changed=false;geo.features.forEach(f=>{const saved=footprints[f.properties.name],center=f.properties.center||f.properties.centroid;if(saved&&!saved.coord&&center){saved.coord=center;changed=true}});if(changed)localStorage.setItem('china-travel-footprints',JSON.stringify(footprints));current.textContent=name;arrow.hidden=false;tip.textContent=municipalities.has(name)?'点击任意区域，整体点亮或取消 · W / S 缩放':'点击城市点亮或取消 · W / S 缩放';renderStats();chart.setOption(option(mapName,areaNames),true)}catch(e){tip.textContent='省内地图加载失败，请稍后重试'}finally{loading.classList.remove('show')}}
+    chart.on('click',async p=>{if(level==='china'){const geo=geoCache['100000'];const f=geo.features.find(x=>x.properties.name===p.name);if(f)showProvince(p.name,String(f.properties.adcode))}else{const isMunicipality=municipalities.has(province),key=isMunicipality?province:p.name;if(footprints[key])delete footprints[key];else{const geo=geoCache[provinceCode],f=geo&&geo.features.find(x=>x.properties.name===p.name),coord=f&&(f.properties.center||f.properties.centroid);footprints[key]={province,time:Date.now(),coord}}localStorage.setItem('china-travel-footprints',JSON.stringify(footprints));renderStats();const marked=new Set(values().map(x=>x.name)),allOn=isMunicipality&&marked.has(province);chart.setOption({series:[{data:areaNames.map(name=>{const on=isMunicipality?allOn:marked.has(name);return{name,value:on?1:0,itemStyle:{areaColor:on?'#ef8354':'#e2e4dc'}}})}]})}});
+    function renderStats(){const all=values().sort((a,b)=>b.time-a.time), provinces=new Set(all.map(x=>x.province)),local=level==='province',shown=local?all.filter(x=>x.province===province):all,total=local?(municipalities.has(province)?1:areaNames.length):333;document.getElementById('cityCount').textContent=shown.length;document.getElementById('cityTotal').textContent=total;document.getElementById('cityLabel').textContent=local?(municipalities.has(province)?'直辖市':'省内城市'):'座城市';document.getElementById('provinceCount').textContent=provinces.size;const pct=Math.min(100,Math.round(shown.length/total*100));document.getElementById('percent').textContent=pct+'%';document.getElementById('bar').style.width=pct+'%';document.getElementById('list').innerHTML=shown.length?shown.slice(0,12).map(x=>`<div class="item"><span>${x.name}</span><em>${x.province}</em></div>`).join(''):'<div class="empty">还没有点亮城市。<br>从地图上选一个省份开始吧！</div>'}
+    document.getElementById('exportBtn').onclick=()=>{const data={version:1,exportedAt:new Date().toISOString(),footprints};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='footprints.json';a.click();URL.revokeObjectURL(url)};
+    document.getElementById('importBtn').onclick=()=>document.getElementById('importFile').click();
+    document.getElementById('importFile').onchange=async event=>{const file=event.target.files[0];if(!file)return;try{const parsed=JSON.parse(await file.text()),incoming=parsed.footprints||parsed;if(!incoming||Array.isArray(incoming)||typeof incoming!=='object')throw Error();for(const [name,item] of Object.entries(incoming)){if(!name||!item||typeof item.province!=='string'||typeof item.time!=='number')throw Error()}footprints=incoming;localStorage.setItem('china-travel-footprints',JSON.stringify(footprints));renderStats();level==='china'?showChina():showProvince(province,provinceCode);alert('足迹导入成功')}catch(e){alert('无法导入：JSON 文件格式不正确')}finally{event.target.value=''}};
+    document.getElementById('homeBtn').onclick=showChina;document.getElementById('clearBtn').onclick=()=>{if(confirm('确定清空所有旅行足迹吗？')){footprints={};localStorage.removeItem('china-travel-footprints');renderStats();level==='china'?showChina():showProvince(province,provinceCode)}};
+    addEventListener('keydown',event=>{
+      const key=event.key.toLowerCase();
+      if(key!=='w'&&key!=='s')return;
+      event.preventDefault();
+      chart.dispatchAction({type:'geoRoam',componentType:'series',seriesIndex:0,zoom:key==='w'?1.2:0.84,originX:chart.getWidth()/2,originY:chart.getHeight()/2});
+    });
+    async function loadInitialData(){
+      try{
+        const response=await fetch('./footprints.json',{cache:'no-store'});
+        if(!response.ok)throw Error();
+        const parsed=await response.json(),repo=parsed.footprints||parsed;
+        if(!repo||Array.isArray(repo)||typeof repo!=='object')throw Error();
+        for(const [name,item] of Object.entries(repo)){
+          if(!name||!item||typeof item.province!=='string'||typeof item.time!=='number')continue;
+          if(!footprints[name]||item.time>footprints[name].time)footprints[name]=item;
+        }
+        municipalities.forEach(city=>{const districts=Object.entries(footprints).filter(([name,v])=>v.province===city&&name!==city);if(districts.length){const latest=districts.sort((a,b)=>b[1].time-a[1].time)[0][1];districts.forEach(([name])=>delete footprints[name]);if(!footprints[city]||latest.time>footprints[city].time)footprints[city]={province:city,time:latest.time}}});
+        localStorage.setItem('china-travel-footprints',JSON.stringify(footprints));
+      }catch(e){console.info('未读取到仓库 footprints.json，继续使用浏览器本地足迹。')}
+      renderStats();showChina();
+    }
+    addEventListener('resize',()=>chart.resize());loadInitialData();
+  </script>
+</body>
+</html>
